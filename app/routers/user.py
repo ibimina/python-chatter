@@ -57,7 +57,8 @@ def get_all_users(db: Session = Depends(get_db)):
 
 @router.delete("/", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
-    user = db.query(models.User).filter(models.User.id == current_user.id).first()
+    user = db.query(models.User).filter(
+        models.User.id == current_user.id).first()
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
@@ -68,68 +69,65 @@ def delete_user(db: Session = Depends(get_db), current_user: int = Depends(oauth
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.put("/", response_model=schemas.UserOut)
-def update_user(user: schemas.UserCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
-    user_query = db.query(models.User).filter(models.User.id == current_user.id)
+@router.put("/", response_model=schemas.UserOut, status_code=status.HTTP_200_OK)
+def update_user(user: schemas.UserUpdate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+
+    user_query = db.query(models.User).filter(
+        models.User.id == current_user.id)
     existing_user = user_query.first()
 
     if not existing_user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
-    if user.password:
-        hashed_password = utils.hash(user.password)
-        user.password = hashed_password
+    update_data = user.model_dump(exclude_unset=True, exclude_none=True)
 
-    user_query.update(user.model_dump(), synchronize_session=False)
-    db.commit()
+    if update_data:
+        user_query.update(update_data, synchronize_session=False)
+        db.commit()
+
     return user_query.first()
 
 
-@router.put("/add_topics", response_model=schemas.UserOut)
+@router.put("/add_topics", response_model=schemas.UserOut, status_code=status.HTTP_200_OK)
 def update_user_topics(
-    id: int,
-    topics: list[schemas.TopicCreate],
+    topics_data: schemas.TopicCreate,
     db: Session = Depends(get_db),
     current_user: int = Depends(oauth2.get_current_user)
 ):
-    if current_user.id != id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to update this user's topics"
-        )
 
-    user = db.query(models.User).filter(models.User.id == id).first()
+    user = db.query(models.User).filter(
+        models.User.id == current_user.id).first()
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
-    
-    existing_titles = {t.title.lower() for t in user.topics}
+    existing_titles = {t.title.lower() for t in user.interested_topics}
     new_topics = []
-    for topic in topics:
-        if topic.title.lower() not in existing_titles:
+    for topic in topics_data.topics:
+        if topic.lower() not in existing_titles:
             existing_topic = db.query(models.Topic).filter(
-                models.Topic.title.ilike(topic.title)).first()
+                models.Topic.title.ilike(topic)).first()
             if not existing_topic:
-                existing_topic = models.Topic(**topic.model_dump())
+                existing_topic = models.Topic(title=topic)
                 db.add(existing_topic)
-                db.flush()  # Ensure ID is available
+                db.flush()  
             new_topics.append(existing_topic)
-    user.topics.extend(new_topics)
-
+    user.interested_topics.extend(new_topics)
 
     db.commit()
     db.refresh(user)
     return user
+
 
 @router.get("/feeds", response_model=list[schemas.ArticleOut])
 def get_user_feeds(
     db: Session = Depends(get_db),
     current_user: int = Depends(oauth2.get_current_user)
 ):
-    user = db.query(models.User).filter(models.User.id == current_user.id).first()
+    user = db.query(models.User).filter(
+        models.User.id == current_user.id).first()
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="You are not authorized to view this user's feeds"
@@ -143,12 +141,14 @@ def get_user_feeds(
 
     return feeds
 
+
 @router.get("/dashboard", response_model=schemas.UserDashboard)
 def get_user_dashboard(
     db: Session = Depends(get_db),
     current_user: int = Depends(oauth2.get_current_user)
 ):
-    user = db.query(models.User).filter(models.User.id == current_user.id).first()
+    user = db.query(models.User).filter(
+        models.User.id == current_user.id).first()
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
