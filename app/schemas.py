@@ -29,12 +29,10 @@ class UserUpdate(BaseModel):
 
 class UserOut(UserBase):
     id: int
-    created_at: datetime
+    profile_image: Optional[str] = None
     class Config:
         from_attributes = True
 class AuthUserOut(UserBase):
-    id: int
-    created_at: datetime
     access_token: Optional[str] = None
     token_type: Optional[str] = None
     class Config:
@@ -91,6 +89,12 @@ class ArticleOut(ArticleBase):
     created_at: datetime
     updated_at: datetime
     comments: list[CommentOut] = []
+    views_count: int = 0
+    likes_count: int = 0
+    bookmark_count: int = 0
+    author: UserOut
+    bookmarked_by: list[UserOut] = []
+    liked_by: list[UserOut] = []
     class Config:
         from_attributes = True
 
