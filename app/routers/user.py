@@ -125,7 +125,7 @@ def get_user_feeds(
         )
 
     feeds = db.query(models.Article).join(
-        models.Article.topics, models.Topic.interested_users
+        models.Article.topic, models.Topic.interested_users
     ).filter(
         models.Topic.interested_users.any(id=user.id)
     ).all()
