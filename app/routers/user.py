@@ -114,24 +114,13 @@ def update_user_topics(
 
 @router.get("/feeds", response_model=list[schemas.ArticleOut])
 def get_user_feeds(
-    db: Session = Depends(get_db),
     current_user: int = Depends(oauth2.get_current_user)
 ):
-    user = db.query(models.User).filter(
-        models.User.id == current_user.id).first()
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="You are not authorized to view this user's feeds"
-        )
-
-    feeds = db.query(models.Article).join(
-        models.Article.topic, models.Topic.interested_users
-    ).filter(
-        models.Topic.interested_users.any(id=user.id)
-    ).all()
+    feeds = []
+    for topic in current_user.interested_topics:
+        feeds.extend(topic.articles)
 
     return feeds
-
 
 @router.get("/dashboard", response_model=schemas.UserDashboard)
 def get_user_dashboard(
