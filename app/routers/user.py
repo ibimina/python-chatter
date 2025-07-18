@@ -166,3 +166,5 @@ def get_user_dashboard(
     )
 
     return dashboard_data
+
+# get user bookmarks

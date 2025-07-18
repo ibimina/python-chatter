@@ -113,7 +113,6 @@ class Article(Base):
     bookmark_count = Column(Integer, default=0, nullable=False)
     views_count = Column(Integer, default=0, nullable=False)
     likes_count = Column(Integer, default=0, nullable=False)
-    # Estimated reading time in minutes
     reading_time = Column(Integer, nullable=True)
     created_at = Column(TIMESTAMP(timezone=True),
                         server_default=text('now()'), nullable=False)
