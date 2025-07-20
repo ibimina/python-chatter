@@ -95,15 +95,31 @@ class ArticleOut(ArticleBase):
     author: UserOut
     bookmarked_by: list[UserOut] = []
     liked_by: list[UserOut] = []
+    topic: list[TopicOut] = []
+    bio: Optional[str] = None
     class Config:
         from_attributes = True
 
 class UserDashboard(BaseModel):
-    user: UserOut
+    id: int
+    email: EmailStr
+    username: str
     topics: list[TopicOut] = []
     articles: list[ArticleOut] = []
-    feeds: list[ArticleOut] = []
     articles_count: int = Field(0, ge=0)
+    followers_count: int = Field(0, ge=0)
+    following_count: int = Field(0, ge=0)
+    followers: list[UserOut] = []
+    following: list[UserOut] = []
+    twitter_url: Optional[str] = None
+    instagram_url: Optional[str] = None
+    website_url: Optional[str] = None
+    youtube_url: Optional[str] = None
+    linkedin_url: Optional[str] = None
+    github_url: Optional[str] = None
+    location: Optional[str] = None
+    profile_image: Optional[str] = None
+
     class Config:
         from_attributes = True
 

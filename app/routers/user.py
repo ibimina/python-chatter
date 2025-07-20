@@ -138,12 +138,23 @@ def get_user_dashboard(
         id=user.id,
         email=user.email,
         username=user.username,
-        created_at=user.created_at,
-        topics=[topic.title for topic in user.topics],
-        articles_count=len(user.articles),
-        followers_count=len(user.followers),
-        following_count=len(user.following)
-    )
+        topics=user.interested_topics,
+        articles=user.articles,
+            articles_count=len(user.articles),
+            followers_count=len(user.followers),
+            following_count=len(user.following),
+            followers=user.followers,
+            following=user.following,
+            twitter_url=user.twitter_url,
+            instagram_url=user.instagram_url,
+            website_url=user.website_url,
+            youtube_url=user.youtube_url,
+            linkedin_url=user.linkedin_url,
+            github_url=user.github_url,
+            location=user.location,
+            profile_image=user.profile_image,
+            bio=user.bio
+        )
 
     return dashboard_data
 
