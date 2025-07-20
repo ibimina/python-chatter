@@ -159,7 +159,7 @@ def get_user_dashboard(
     return dashboard_data
 
 
-@router.get("/{id}", response_model=schemas.UserOut)
+@router.get("/{id}", response_model=schemas.UserDashboard)
 def get_user(id: int, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.id == id).first()
     if not user:
