@@ -22,11 +22,13 @@ def follow_user(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     
     if current_user in target_user.followers:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Already following this user")
-    
-    target_user.followers.append(current_user)
-    db.commit()
-    return {"message": f"You are now following {target_user.username}"}
+            target_user.followers.remove(current_user)
+            db.commit()
+            return {"message": f"You are not following {target_user.username}"}
+    else: 
+        target_user.followers.append(current_user)
+        db.commit()
+        return {"message": f"You are now following {target_user.username}"}
 
 @router.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 def unfollow_user(
