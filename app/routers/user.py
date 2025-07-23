@@ -118,7 +118,7 @@ def get_user_feeds(
 ):
     feeds = []
     for topic in current_user.interested_topics:
-        feeds.extend(topic.articles)
+        feeds.extend(topic.articles.filter(models.Article.is_published == True))
 
     return feeds
 
