@@ -1,6 +1,8 @@
 from fastapi import Response, status, HTTPException, Depends, APIRouter
 from sqlalchemy.orm import Session
-from .. import models, schemas, utils, oauth2
+
+from .. import utils
+from .. import models, schemas, oauth2
 from ..database import get_db
 
 router = APIRouter(
@@ -20,8 +22,8 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
     try:
         user.password = utils.hash(user.password)
+        user.username = utils.generate_username(db)
 
-        # Create user in the database
         new_user = models.User(**user.model_dump())
         db.add(new_user)
         db.commit()
@@ -116,9 +118,10 @@ def update_user_topics(
 def get_user_feeds(
     current_user: int = Depends(oauth2.get_current_user)
 ):
+    # include user articles
     feeds = []
     for topic in current_user.interested_topics:
-        feeds.extend(topic.articles.filter(models.Article.is_published == True))
+        feeds.extend(topic.articles.filter(models.Article.is_published == True, models.Article.author_id == current_user.id).all())
 
     return feeds
 
@@ -137,9 +140,23 @@ def get_user_dashboard(
     return user
 
 
-@router.get("/{id}", response_model=schemas.UserDashboard)
-def get_user(id: int, db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.id == id).first()
+@router.get("/check_username/{username}", response_model=dict)
+def check_username_availability(
+    username: str,
+    db: Session = Depends(get_db)
+):
+    user = db.query(models.User).filter(
+        models.User.username == username).first()
+    if user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Username already taken"
+        )
+    
+    return {"username": username, "available": True}
+
+@router.get("/{username}", response_model=schemas.UserDashboard)
+def get_user(username: int, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.username == username).first()
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found")

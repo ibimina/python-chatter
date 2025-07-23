@@ -5,7 +5,6 @@ from typing import Optional
 
 class UserBase(BaseModel):
     email: EmailStr
-    username: str
 class UserCreate(UserBase):
     password: str
 class UserUpdate(BaseModel):
@@ -30,6 +29,9 @@ class UserUpdate(BaseModel):
 class UserOut(UserBase):
     id: int
     profile_image: Optional[str] = None
+    username: str
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
     class Config:
         from_attributes = True
 class AuthUserOut(UserBase):
@@ -141,4 +143,21 @@ class MessageOut(MessageBase):
     class Config:
         from_attributes = True
 
+class UserSearchOut(BaseModel):
+    username: str
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    profile_image: Optional[str] = None
+    bio: Optional[str] = None
+    class Config:
+        from_attributes = True
 
+
+
+class SearchOut(BaseModel):
+    articles: list[ArticleOut] = []
+    users: list[UserSearchOut] = []
+    topics: list[TopicOut] = []
+
+    class Config:
+        from_attributes = True

@@ -143,3 +143,26 @@ def reply_to_comment(article_id: int, comment_id: int, reply: schemas.CommentCre
     db.commit()
     db.refresh(new_reply)
     return new_reply
+
+
+@router.get("/search", status_code=status.HTTP_200_OK)
+def global_search(search_string: str, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+
+    if not search_string:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Search string cannot be empty")
+    
+    search_string = f"%{search_string}%"
+
+    articles = db.query(
+        models.Article.title.ilike(search_string), models.Article.is_published == True, models.Article.subtitle.ilike(search_string)).all()
+
+    users = db.query(models.User.username.ilike(search_string)).all()
+
+    topics = db.query(models.Topic.title.ilike(search_string), models.Topic.articles.filter(models.Article.is_published == True)).all()
+
+    return {
+        "articles": articles,
+        "users": users,
+        "topics": topics
+    }

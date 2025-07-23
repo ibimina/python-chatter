@@ -24,7 +24,7 @@ class User(Base):
     first_name = Column(String, nullable=True)
     last_name = Column(String, nullable=True)
     bio = Column(String, nullable=True)
-    username = Column(String, nullable=True)
+    username = Column(String, nullable=False, unique=True,)
     facebook_url = Column(String, nullable=True)
     twitter_url = Column(String, nullable=True)
     instagram_url = Column(String, nullable=True)
