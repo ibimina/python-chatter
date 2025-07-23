@@ -134,29 +134,7 @@ def get_user_dashboard(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
-    dashboard_data = schemas.UserDashboard(
-        id=user.id,
-        email=user.email,
-        username=user.username,
-        topics=user.interested_topics,
-        articles=user.articles,
-            articles_count=len(user.articles),
-            followers_count=len(user.followers),
-            following_count=len(user.following),
-            followers=user.followers,
-            following=user.following,
-            twitter_url=user.twitter_url,
-            instagram_url=user.instagram_url,
-            website_url=user.website_url,
-            youtube_url=user.youtube_url,
-            linkedin_url=user.linkedin_url,
-            github_url=user.github_url,
-            location=user.location,
-            profile_image=user.profile_image,
-            bio=user.bio
-        )
-
-    return dashboard_data
+    return user
 
 
 @router.get("/{id}", response_model=schemas.UserDashboard)
@@ -165,5 +143,5 @@ def get_user(id: int, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-    return user
+    return user 
 

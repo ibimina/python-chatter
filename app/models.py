@@ -109,10 +109,7 @@ class Article(Base):
     is_published = Column(Boolean, default=False, nullable=False)
     topic_id = Column(Integer, ForeignKey(
         'topics.id', ondelete='SET NULL'), nullable=True)
-
-    bookmark_count = Column(Integer, default=0, nullable=False)
     views_count = Column(Integer, default=0, nullable=False)
-    likes_count = Column(Integer, default=0, nullable=False)
     reading_time = Column(Integer, nullable=True)
     created_at = Column(TIMESTAMP(timezone=True),
                         server_default=text('now()'), nullable=False)

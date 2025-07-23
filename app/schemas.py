@@ -109,9 +109,6 @@ class UserDashboard(BaseModel):
     username: str
     topics: list[TopicOut] = []
     articles: list[ArticleOut] = []
-    articles_count: int = Field(0, ge=0)
-    followers_count: int = Field(0, ge=0)
-    following_count: int = Field(0, ge=0)
     followers: list[UserOut] = []
     following: list[UserOut] = []
     twitter_url: Optional[str] = None
@@ -122,6 +119,10 @@ class UserDashboard(BaseModel):
     github_url: Optional[str] = None
     location: Optional[str] = None
     profile_image: Optional[str] = None
+    interested_topics: list[TopicOut] = []
+    bio: Optional[str] = None
+    bookmarked_articles: list[ArticleOut] = []
+    liked_articles: list[ArticleOut] = []
 
     class Config:
         from_attributes = True
