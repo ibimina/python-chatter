@@ -23,4 +23,8 @@ def generate_username(db: Session) -> str:
         existing_user = db.query(models.User).filter(models.User.username == username).first()
         if not existing_user:
             return username
+
+def is_username_taken(db: Session, username: str) -> bool:
+    return db.query(models.User).filter(models.User.username == username).first() is not None
+
         

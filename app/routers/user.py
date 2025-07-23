@@ -73,6 +73,11 @@ def update_user(user: schemas.UserUpdate, db: Session = Depends(get_db), current
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
+    is_username_taken = utils.is_username_taken(db, user.username)
+    if is_username_taken and user.username != existing_user.username:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Username already taken")
+
     update_data = user.model_dump(exclude_unset=True, exclude_none=True)
 
     if update_data:
@@ -118,10 +123,21 @@ def update_user_topics(
 def get_user_feeds(
     current_user: int = Depends(oauth2.get_current_user)
 ):
-    # include user articles
+    
     feeds = []
     for topic in current_user.interested_topics:
-        feeds.extend(topic.articles.filter(models.Article.is_published == True, models.Article.author_id == current_user.id).all())
+        published_articles = [article for article in topic.articles if article.is_published]
+        feeds.extend(published_articles)
+        
+    for followed_user in current_user.following:
+        published_articles = [article for article in followed_user.articles if article.is_published]
+        feeds.extend(published_articles)
+
+    current_user_articles = [article for article in current_user.articles if article.is_published]
+    feeds.extend(current_user_articles)
+
+    feeds = list(set(feeds))
+    feeds.sort(key=lambda x: x.created_at, reverse=True)
 
     return feeds
 

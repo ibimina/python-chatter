@@ -1,5 +1,6 @@
 from fastapi import status, HTTPException, Depends, APIRouter
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from .. import models, schemas, oauth2
 from ..database import get_db
 
@@ -36,6 +37,49 @@ def create_article(article: schemas.ArticleCreate, db: Session = Depends(get_db)
     db.refresh(db_article)
 
     return db_article
+
+@router.get("/search", status_code=status.HTTP_200_OK)
+def global_search(search_string: str, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+    if not search_string:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Search string cannot be empty")
+    
+    search_string = f"%{search_string}%"
+
+    articles = db.query(models.Article).filter(
+    or_(
+            models.Article.title.ilike(search_string),
+            models.Article.subtitle.ilike(search_string)
+        ),
+        models.Article.is_published == True
+    ).all()
+
+    users = db.query(models.User).filter(
+    models.User.username.ilike(search_string)
+    ).all()
+
+    topics = db.query(models.Topic).filter(
+        models.Topic.title.ilike(search_string)
+    ).all()
+
+    topic_articles = []
+    for topic in topics:
+        published_articles = [article for article in topic.articles if article.is_published]
+        topic_articles.extend(published_articles)
+
+    all_articles = articles + topic_articles
+    unique_articles = {article.id: article for article in all_articles}
+    final_articles = list(unique_articles.values())
+
+    if not final_articles and not users and not topics:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="No results found")
+
+    return {
+        "articles": final_articles,
+        "users": users,
+        "topics": topics
+    }
 
 
 @router.get("/user/{user_id}", response_model=list[schemas.ArticleOut])
@@ -144,25 +188,3 @@ def reply_to_comment(article_id: int, comment_id: int, reply: schemas.CommentCre
     db.refresh(new_reply)
     return new_reply
 
-
-@router.get("/search", status_code=status.HTTP_200_OK)
-def global_search(search_string: str, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
-
-    if not search_string:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Search string cannot be empty")
-    
-    search_string = f"%{search_string}%"
-
-    articles = db.query(
-        models.Article.title.ilike(search_string), models.Article.is_published == True, models.Article.subtitle.ilike(search_string)).all()
-
-    users = db.query(models.User.username.ilike(search_string)).all()
-
-    topics = db.query(models.Topic.title.ilike(search_string), models.Topic.articles.filter(models.Article.is_published == True)).all()
-
-    return {
-        "articles": articles,
-        "users": users,
-        "topics": topics
-    }
