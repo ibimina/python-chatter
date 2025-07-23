@@ -63,8 +63,25 @@ def update_article(article_id: int, article: schemas.ArticleCreate, db: Session 
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Article not found or you do not have permission to edit it")
 
-    for key, value in article.model_dump().items():
+    article_data = article.model_dump()
+    article_data.pop('topics', None)
+
+    for key, value in article_data.items():
         setattr(db_article, key, value)
+
+    topic_objects = []
+    for topic_title in article.topics:
+        topic = db.query(models.Topic).filter(
+            models.Topic.title.ilike(topic_title)
+        ).first()
+
+        if not topic:
+            topic = models.Topic(title=topic_title)
+            db.add(topic)
+            db.flush()  
+        topic_objects.append(topic)
+
+    db_article.topic = topic_objects
 
     db.commit()
     db.refresh(db_article)
