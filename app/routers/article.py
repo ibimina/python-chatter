@@ -54,6 +54,23 @@ def get_article(article_id: int, db: Session = Depends(get_db)):
             status_code=status.HTTP_404_NOT_FOUND, detail="Article not found")
     return article
 
+@router.patch("/{article_id}", response_model=schemas.ArticleOut)
+def update_article(article_id: int, article: schemas.ArticleCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+    db_article = db.query(models.Article).filter(
+        models.Article.id == article_id, models.Article.author_id == current_user.id).first()
+    
+    if not db_article:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Article not found or you do not have permission to edit it")
+
+    for key, value in article.model_dump().items():
+        setattr(db_article, key, value)
+
+    db.commit()
+    db.refresh(db_article)
+    return db_article
+
+
 @router.post("/{article_id}/like", status_code=status.HTTP_201_CREATED)
 def like_article(article_id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     article = db.query(models.Article).filter(

@@ -82,6 +82,8 @@ class ArticleBase(BaseModel):
 
 class ArticleCreate(ArticleBase):
     topics: list[str] = []
+    is_published: bool = False
+    reading_time: Optional[int] = None
 
 class ArticleOut(ArticleBase):
     id: int
