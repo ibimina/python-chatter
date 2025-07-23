@@ -171,7 +171,7 @@ def check_username_availability(
     return {"username": username, "available": True}
 
 @router.get("/{username}", response_model=schemas.UserDashboard)
-def get_user(username: int, db: Session = Depends(get_db)):
+def get_user(username: str, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.username == username).first()
     if not user:
         raise HTTPException(
