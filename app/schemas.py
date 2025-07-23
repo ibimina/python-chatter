@@ -79,11 +79,11 @@ class ArticleBase(BaseModel):
     title: str
     content: str
     cover_image: Optional[str] = None
+    reading_time: Optional[int] = None
+    is_published: bool = False
 
 class ArticleCreate(ArticleBase):
     topics: list[str] = []
-    is_published: bool = False
-    reading_time: Optional[int] = None
 
 class ArticleOut(ArticleBase):
     id: int
@@ -99,6 +99,7 @@ class ArticleOut(ArticleBase):
     liked_by: list[UserOut] = []
     topic: list[TopicOut] = []
     bio: Optional[str] = None
+
     class Config:
         from_attributes = True
 
