@@ -38,7 +38,7 @@ def create_article(article: schemas.ArticleCreate, db: Session = Depends(get_db)
 
     return db_article
 
-@router.get("/search", status_code=status.HTTP_200_OK)
+@router.get("/search", status_code=status.HTTP_200_OK, response_model=schemas.SearchOut)
 def global_search(search_string: str, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     if not search_string:
         raise HTTPException(
@@ -95,7 +95,7 @@ def get_article(article_id: int, db: Session = Depends(get_db)):
     return article
 
 @router.patch("/{article_id}", response_model=schemas.ArticleOut)
-def update_article(article_id: int, article: schemas.ArticleCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+def update_article(article_id: int, article: schemas.ArticleUpdate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     db_article = db.query(models.Article).filter(
         models.Article.id == article_id, models.Article.author_id == current_user.id).first()
     
@@ -104,24 +104,31 @@ def update_article(article_id: int, article: schemas.ArticleCreate, db: Session 
             status_code=status.HTTP_404_NOT_FOUND, detail="Article not found or you do not have permission to edit it")
 
     article_data = article.model_dump()
-    article_data.pop('topics', None)
 
-    for key, value in article_data.items():
-        setattr(db_article, key, value)
+    if hasattr(article, 'topics') and article.topics is not None:
+        article_data.pop('topics', None)
 
-    topic_objects = []
-    for topic_title in article.topics:
-        topic = db.query(models.Topic).filter(
-            models.Topic.title.ilike(topic_title)
-        ).first()
+        for key, value in article_data.items():
+            if value is not None:
+                 setattr(db_article, key, value)
 
-        if not topic:
-            topic = models.Topic(title=topic_title)
-            db.add(topic)
-            db.flush()  
-        topic_objects.append(topic)
+        topic_objects = []
+        for topic_title in article.topics:
+            topic = db.query(models.Topic).filter(
+                models.Topic.title.ilike(topic_title)
+            ).first()
 
-    db_article.topic = topic_objects
+            if not topic:
+                topic = models.Topic(title=topic_title)
+                db.add(topic)
+                db.flush()  
+            topic_objects.append(topic)
+
+        db_article.topic = topic_objects
+    else:
+        for key, value in article_data.items():
+            if value is not None:  
+                setattr(db_article, key, value)
 
     db.commit()
     db.refresh(db_article)

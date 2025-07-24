@@ -87,6 +87,15 @@ class ArticleBase(BaseModel):
 class ArticleCreate(ArticleBase):
     topics: list[str] = []
 
+class ArticleUpdate(BaseModel):
+    title: Optional[str] = None
+    content: Optional[str] = None
+    cover_image: Optional[str] = None
+    reading_time: Optional[int] = None
+    topics: Optional[list[str]] = None
+    is_published: Optional[bool] = None
+
+
 class ArticleOut(ArticleBase):
     id: int
     author_id: int
@@ -94,13 +103,10 @@ class ArticleOut(ArticleBase):
     updated_at: datetime
     comments: list[CommentOut] = []
     views_count: int = 0
-    likes_count: int = 0
-    bookmark_count: int = 0
     author: UserOut
     bookmarked_by: list[UserOut] = []
     liked_by: list[UserOut] = []
     topic: list[TopicOut] = []
-    bio: Optional[str] = None
 
     class Config:
         from_attributes = True
