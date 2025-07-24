@@ -55,13 +55,6 @@ class TopicCreate(BaseModel):
 class SingleTopic(BaseModel):
     topic: str
 
-class TopicOut(TopicBase):
-    id: int
-    created_at: datetime
-    interested_users: list[UserOut] = []
-    class Config:
-        from_attributes = True
-
 class CommentBase(BaseModel):
     content: str
 
@@ -95,10 +88,15 @@ class ArticleUpdate(BaseModel):
     topics: Optional[list[str]] = None
     is_published: Optional[bool] = None
 
+class Topic(TopicBase):
+    id: int
+    created_at: datetime
+    interested_users: list[UserOut] = []
+    class Config:
+        from_attributes = True
 
 class ArticleOut(ArticleBase):
     id: int
-    author_id: int
     created_at: datetime
     updated_at: datetime
     comments: list[CommentOut] = []
@@ -106,10 +104,19 @@ class ArticleOut(ArticleBase):
     author: UserOut
     bookmarked_by: list[UserOut] = []
     liked_by: list[UserOut] = []
-    topic: list[TopicOut] = []
+    topic: list[Topic] = []
 
     class Config:
         from_attributes = True
+
+class TopicOut(TopicBase):
+    id: int
+    created_at: datetime
+    interested_users: list[UserOut] = []
+    articles: list[ArticleOut] = []
+    class Config:
+        from_attributes = True
+
 
 class UserDashboard(BaseModel):
     id: int

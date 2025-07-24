@@ -13,9 +13,9 @@ def get_all_topics(db: Session = Depends(get_db)):
     topics = db.query(models.Topic).all()
     return topics
 
-@router.get("/{topic_id}", response_model=schemas.TopicOut)
-def get_topic_by_id(topic_id: int, db: Session = Depends(get_db),):
-    topic = db.query(models.Topic).filter(models.Topic.id == topic_id).first()
+@router.get("/{topic_title}", response_model=schemas.TopicOut)
+def get_topic_by_title(topic_title: str, db: Session = Depends(get_db)):
+    topic = db.query(models.Topic).filter(models.Topic.title.ilike(topic_title)).first()
     if not topic:
         raise HTTPException(status_code=404, detail="Topic not found")
     return topic
