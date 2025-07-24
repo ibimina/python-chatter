@@ -71,10 +71,6 @@ def global_search(search_string: str, db: Session = Depends(get_db), current_use
     unique_articles = {article.id: article for article in all_articles}
     final_articles = list(unique_articles.values())
 
-    if not final_articles and not users and not topics:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="No results found")
-
     return {
         "articles": final_articles,
         "users": users,
